@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cursor-sheet"
+version = "0.1.0"
+description = "Build contact sheets from Windows cursor animation frames."
+requires-python = ">=3.10"
+dependencies = ["Pillow>=10.0.0", "opencv-python>=4.8.0"]
+
+[project.scripts]
+cursor-sheet = "cursor_sheet.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
