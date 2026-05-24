@@ -7,6 +7,7 @@ from cursor_sheet.frame_images import (
     remove_solid_background,
     split_contact_sheet,
 )
+from cursor_sheet.gif import render_gif_frames, write_gif
 from cursor_sheet.parser import CursorDocument, parse_cursor_file
 from cursor_sheet.sheet import make_contact_sheet
 from cursor_sheet.writer import build_ani_bytes, build_cur_bytes, write_ani, write_cur
@@ -20,8 +21,10 @@ __all__ = [
     "make_contact_sheet",
     "parse_cursor_file",
     "pixelate_frame_images",
+    "render_gif_frames",
     "remove_solid_background",
     "split_contact_sheet",
     "write_ani",
     "write_cur",
+    "write_gif",
 ]

@@ -6,6 +6,7 @@
 
 - 将 `.ani` / `.cur` 解析成 PNG 序列拼图。
 - 将图片序列或带分隔线的 sprite sheet 转成 `.ani` / `.cur`。
+- 将 `.ani` / `.cur` 转成 GIF 动图。
 - 自动分割黑色分隔线 sprite sheet。
 - 自动去除纯色/绿幕背景，支持背景色和容差参数。
 - 可选帧对齐，减少动画抖动。
@@ -32,6 +33,7 @@ python -m pip install -e .
 ```bash
 cursor-sheet sheet ...
 cursor-sheet cursor ...
+cursor-sheet gif ...
 cursor-sheet demo
 cursor-sheet hotspot
 ```
@@ -69,6 +71,39 @@ cursor-sheet sheet cursors/Merry-Windows \
 - `--mode unique`：只输出文件中唯一帧。
 - `--separator-color`：拼图分隔线颜色，默认黑色。
 - `--background-color`：拼图背景，默认透明。
+
+## 鼠标指针转 GIF
+
+将单个 `.ani` / `.cur` 转成 GIF：
+
+```bash
+cursor-sheet gif cursors/Merry-Windows/wink.ani -o output/wink.gif
+```
+
+批量转换目录中的鼠标指针文件：
+
+```bash
+cursor-sheet gif cursors/Merry-Windows -o output/cursor_gifs
+```
+
+常用参数：
+
+```bash
+cursor-sheet gif cursors/Merry-Windows/wink.ani \
+  -o output/wink.gif \
+  --scale 2 \
+  --background-color transparent \
+  --delay-ms 100 \
+  --loop 0 \
+  --mode playback
+```
+
+说明：
+
+- `.ani` 会优先使用文件自带的每帧延迟。
+- `.cur` 或没有延迟信息的帧会使用 `--delay-ms`。
+- `--loop 0` 表示无限循环。
+- `--mode unique` 可只导出唯一帧。
 
 ## 图片序列转鼠标指针
 
@@ -274,6 +309,7 @@ cursor-sheet hotspot images/sheet.png
 ```bash
 PYTHONPATH=src python -m cursor_sheet sheet cursors/Merry-Windows -o output/cursor_sheets
 PYTHONPATH=src python -m cursor_sheet cursor images/sheet.png -o output/cursor.ani --hotspot 1,1
+PYTHONPATH=src python -m cursor_sheet gif cursors/Merry-Windows/wink.ani -o output/wink.gif
 PYTHONPATH=src python -m cursor_sheet demo
 PYTHONPATH=src python -m cursor_sheet hotspot
 ```
