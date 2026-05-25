@@ -34,12 +34,20 @@ def write_ani(
     *,
     hotspot: tuple[int, int] = (0, 0),
     delay_ms: int = 100,
+    frame_delays_ms: Sequence[int] | None = None,
 ) -> Path:
     """Write a sequence of images as a Windows .ani file."""
 
     path = Path(output_file)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(build_ani_bytes(images, hotspot=hotspot, delay_ms=delay_ms))
+    path.write_bytes(
+        build_ani_bytes(
+            images,
+            hotspot=hotspot,
+            delay_ms=delay_ms,
+            frame_delays_ms=frame_delays_ms,
+        )
+    )
     return path
 
 
@@ -71,19 +79,19 @@ def build_ani_bytes(
     *,
     hotspot: tuple[int, int] = (0, 0),
     delay_ms: int = 100,
+    frame_delays_ms: Sequence[int] | None = None,
 ) -> bytes:
     """Build an ANI file from image frames in playback order."""
 
     if not images:
         raise ValueError("at least one frame image is required")
-    if delay_ms <= 0:
-        raise ValueError("delay_ms must be greater than zero")
+    delay_values_ms = _resolve_frame_delays(len(images), delay_ms, frame_delays_ms)
 
     rgba_images = tuple(image.convert("RGBA") for image in images)
     for image in rgba_images:
         _validate_cursor_image(image, hotspot)
 
-    delay_jiffies = max(1, int(round(delay_ms * JIF_RATE / 1000)))
+    delay_jiffies = tuple(_milliseconds_to_jiffies(delay) for delay in delay_values_ms)
     max_width = max(image.width for image in rgba_images)
     max_height = max(image.height for image in rgba_images)
     frame_count = len(rgba_images)
@@ -95,11 +103,14 @@ def build_ani_bytes(
         max_height,
         32,
         1,
-        delay_jiffies,
+        delay_jiffies[0],
         ANI_ICON_FLAG,
     )
-    rate_payload = b"".join(UINT32.pack(delay_jiffies) for _ in rgba_images)
-    frame_chunks = b"".join(_riff_chunk(b"icon", build_cur_bytes(image, hotspot=hotspot)) for image in rgba_images)
+    rate_payload = b"".join(UINT32.pack(delay) for delay in delay_jiffies)
+    frame_chunks = b"".join(
+        _riff_chunk(b"icon", build_cur_bytes(image, hotspot=hotspot))
+        for image in rgba_images
+    )
     chunks = b"".join(
         [
             _riff_chunk(b"anih", anih_payload),
@@ -109,6 +120,22 @@ def build_ani_bytes(
     )
     riff_size = 4 + len(chunks)
     return b"RIFF" + UINT32.pack(riff_size) + b"ACON" + chunks
+
+
+def _resolve_frame_delays(frame_count: int, delay_ms: int, frame_delays_ms: Sequence[int] | None) -> tuple[int, ...]:
+    if frame_delays_ms is None:
+        if delay_ms <= 0:
+            raise ValueError("delay_ms must be greater than zero")
+        return tuple(delay_ms for _ in range(frame_count))
+    if len(frame_delays_ms) != frame_count:
+        raise ValueError("frame_delays_ms length must match image frame count")
+    if any(delay <= 0 for delay in frame_delays_ms):
+        raise ValueError("frame delays must be greater than zero")
+    return tuple(frame_delays_ms)
+
+
+def _milliseconds_to_jiffies(delay_ms: int) -> int:
+    return max(1, int(round(delay_ms * JIF_RATE / 1000)))
 
 
 def _validate_cursor_image(image: Image.Image, hotspot: tuple[int, int]) -> None:

@@ -5,6 +5,7 @@ from pathlib import Path
 from PIL import Image, ImageSequence
 
 from cursor_sheet.cli import main as cursor_sheet_main
+from cursor_sheet.parser import parse_cursor_file
 from cursor_sheet.writer import build_ani_bytes, build_cur_bytes
 
 
@@ -76,6 +77,7 @@ def test_root_cli_lists_subcommands(capsys) -> None:
     assert "sheet" in captured.out
     assert "cursor" in captured.out
     assert "gif" in captured.out
+    assert "gif-cursor" in captured.out
     assert "demo" in captured.out
     assert "hotspot" in captured.out
 
@@ -130,3 +132,35 @@ def test_cursor_to_gif_cli_keeps_transparent_background(tmp_path: Path) -> None:
         frame = next(ImageSequence.Iterator(gif)).convert("RGBA")
     assert frame.getpixel((0, 0)) == (0, 0, 0, 0)
     assert frame.getpixel((1, 1)) == (255, 0, 0, 255)
+
+
+def test_gif_to_cursor_cli_writes_ani_with_gif_delays(tmp_path: Path) -> None:
+    frame_1 = Image.new("RGBA", (4, 4), (255, 0, 0, 255))
+    frame_2 = Image.new("RGBA", (4, 4), (0, 0, 255, 255))
+    gif_file = tmp_path / "input.gif"
+    output_file = tmp_path / "cursor.ani"
+    frame_1.save(gif_file, save_all=True, append_images=[frame_2], duration=[100, 250], loop=0)
+
+    exit_code = cursor_sheet_main(["gif-cursor", str(gif_file), "-o", str(output_file), "--hotspot", "1,1"])
+
+    assert exit_code == 0
+    document = parse_cursor_file(output_file)
+    assert [frame.delay for frame in document.playback_frames] == [0.1, 0.25]
+    assert [frame.images[0].image.getpixel((0, 0)) for frame in document.playback_frames] == [
+        (255, 0, 0, 255),
+        (0, 0, 255, 255),
+    ]
+    assert [frame.images[0].hotspot for frame in document.playback_frames] == [(1, 1), (1, 1)]
+
+
+def test_gif_to_cursor_cli_writes_static_cur(tmp_path: Path) -> None:
+    gif_file = tmp_path / "input.gif"
+    output_file = tmp_path / "cursor.cur"
+    Image.new("RGBA", (4, 4), (0, 255, 0, 255)).save(gif_file)
+
+    exit_code = cursor_sheet_main(["gif-cursor", str(gif_file), "-o", str(output_file), "--format", "cur"])
+
+    assert exit_code == 0
+    document = parse_cursor_file(output_file)
+    assert len(document.playback_frames) == 1
+    assert document.playback_frames[0].images[0].image.getpixel((0, 0)) == (0, 255, 0, 255)

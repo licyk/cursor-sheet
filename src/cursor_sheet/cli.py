@@ -13,6 +13,8 @@ from cursor_sheet.cursor_demo_gui import run_from_args as run_demo_from_args
 from cursor_sheet.frames_cli import add_arguments as add_cursor_arguments
 from cursor_sheet.frames_cli import run_from_args as run_cursor_from_args
 from cursor_sheet.gif import write_gif
+from cursor_sheet.gif_cursor_cli import add_arguments as add_gif_cursor_arguments
+from cursor_sheet.gif_cursor_cli import run_from_args as run_gif_cursor_from_args
 from cursor_sheet.hotspot_viewer_gui import add_arguments as add_hotspot_arguments
 from cursor_sheet.hotspot_viewer_gui import run_from_args as run_hotspot_from_args
 from cursor_sheet.parser import CursorDocument, parse_cursor_file
@@ -63,6 +65,14 @@ def _build_root_parser() -> argparse.ArgumentParser:
     )
     add_gif_arguments(gif_parser)
     gif_parser.set_defaults(func=lambda args: run_gif_from_args(args, gif_parser))
+
+    gif_cursor_parser = subparsers.add_parser(
+        "gif-cursor",
+        help="create .ani/.cur files from GIF files",
+        description="Create Windows cursor files from animated GIF frames.",
+    )
+    add_gif_cursor_arguments(gif_cursor_parser)
+    gif_cursor_parser.set_defaults(func=lambda args: run_gif_cursor_from_args(args, gif_cursor_parser))
 
     demo_parser = subparsers.add_parser(
         "demo",

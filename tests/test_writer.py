@@ -44,6 +44,21 @@ def test_build_ani_round_trips_through_parser() -> None:
     assert [frame.images[0].hotspot for frame in document.playback_frames] == [(1, 1), (1, 1), (1, 1)]
 
 
+def test_build_ani_accepts_per_frame_delays() -> None:
+    blob = build_ani_bytes(
+        [
+            image((255, 0, 0, 255)),
+            image((0, 255, 0, 255)),
+        ],
+        hotspot=(1, 1),
+        frame_delays_ms=[100, 250],
+    )
+
+    document = parse_cursor_blob(blob)
+
+    assert [frame.delay for frame in document.playback_frames] == [0.1, 0.25]
+
+
 def test_frames_to_cursor_cli_uses_natural_sort(tmp_path: Path) -> None:
     frames_dir = tmp_path / "frames"
     frames_dir.mkdir()
