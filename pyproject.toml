@@ -9,11 +9,15 @@ description = "Build contact sheets from Windows cursor animation frames."
 requires-python = ">=3.10"
 dependencies = ["Pillow>=10.0.0", "opencv-python>=4.8.0"]
 
+[project.optional-dependencies]
+test = ["pytest>=8.0.0"]
+
 [project.scripts]
 cursor-sheet = "cursor_sheet.cli:main"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
+include = ["cursor_sheet*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -16,18 +16,26 @@
 
 ## 安装
 
-建议在 Python 3.10+ 环境中安装：
+可以直接从 GitHub 安装：
 
 ```bash
-python -m pip install -e .
+python -m pip install "git+https://github.com/licyk/cursor-sheet.git"
 ```
 
-依赖在 [pyproject.toml](pyproject.toml) 中声明，主要包括：
+如果要本地开发，先克隆仓库再用可编辑模式安装：
+
+```bash
+git clone https://github.com/licyk/cursor-sheet.git
+cd cursor-sheet
+python -m pip install -e ".[test]"
+```
+
+运行时依赖在 [pyproject.toml](pyproject.toml) 中声明，主要包括：
 
 - `Pillow`
 - `opencv-python`
 
-如果不安装为命令，也可以用 `PYTHONPATH=src python -m ...` 的方式运行。
+测试依赖在 `test` extra 中声明，主要是 `pytest`。
 
 安装后只会暴露一个根命令 `cursor-sheet`，所有功能都通过子命令调用：
 
@@ -349,21 +357,29 @@ cursor-sheet hotspot images/sheet.png
 
 ## 不安装时的运行方式
 
-如果还没有 `pip install -e .`，可以这样运行：
+如果只是从仓库根目录临时运行，也可以直接用 `python -m cursor_sheet ...`：
 
 ```bash
-PYTHONPATH=src python -m cursor_sheet sheet cursors/Merry-Windows -o output/cursor_sheets
-PYTHONPATH=src python -m cursor_sheet cursor images/sheet.png -o output/cursor.ani --hotspot 1,1
-PYTHONPATH=src python -m cursor_sheet gif cursors/Merry-Windows/wink.ani -o output/wink.gif
-PYTHONPATH=src python -m cursor_sheet gif-cursor images/cursor.gif -o output/cursor.ani --hotspot 1,1
-PYTHONPATH=src python -m cursor_sheet demo
-PYTHONPATH=src python -m cursor_sheet hotspot
+python -m cursor_sheet sheet cursors/Merry-Windows -o output/cursor_sheets
+python -m cursor_sheet cursor images/sheet.png -o output/cursor.ani --hotspot 1,1
+python -m cursor_sheet gif cursors/Merry-Windows/wink.ani -o output/wink.gif
+python -m cursor_sheet gif-cursor images/cursor.gif -o output/cursor.ani --hotspot 1,1
+python -m cursor_sheet demo
+python -m cursor_sheet hotspot
 ```
 
 ## 测试
+
+首次运行测试前安装测试依赖：
+
+```bash
+python -m pip install -e ".[test]"
+```
 
 运行全部测试：
 
 ```bash
 python -m pytest
 ```
+
+仓库也包含 GitHub Actions workflow，会在 push 和 pull request 时自动运行 pytest。
